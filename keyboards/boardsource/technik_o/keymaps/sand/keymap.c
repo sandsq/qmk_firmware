@@ -187,10 +187,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),  
 
     [_ADJUST] = LAYOUT_ortho_4x12(
-    _______,    PLOVER,     KC_MPRV,    KC_MNXT,    KC_MPLY,    _______,    DF(_MAIN),    _______,    _______,    ST_GEM,     ST_BOLT,    RESET,    \
+    _______,    PLOVER,     KC_MPRV,    KC_MNXT,    KC_MPLY,    _______,    DF(_MAIN),    _______,    _______,    ST_GEM,     ST_BOLT,    QK_BOOT,    \
     _______,    EXT_PLV,    KC_VOLD,    KC_VOLU,    KC_MUTE,    _______,    DF(_MAIN2),   _______,    _______,    _______,    _______,    _______,    \
-    _______,    CMB_TOG,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    \
-    RGB_TOG,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    STN_PWR,    STN_RE1,    STN_RE2 
+    _______,    CM_TOGG,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    \
+    UG_TOGG,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    _______,    STN_PWR,    STN_RE1,    STN_RE2 
     ),
 
     [_PLOVER] = LAYOUT_ortho_4x12(
@@ -337,7 +337,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
   return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
 }
 
-void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
     // if (host_keyboard_led_state().caps_lock) {
     if (host_keyboard_led_state().caps_lock || is_caps_word_on()) {
         for (uint8_t i = led_min; i <= led_max; i++) {
@@ -347,6 +347,7 @@ void rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
             }
         }
     }
+    return false;
 }
 
 // void caps_word_set_user(bool active) {
@@ -396,7 +397,7 @@ void process_combo_event(uint16_t combo_index, bool pressed) {
             tap_code(KC_DOT);
             tap_code(KC_SPC);
             /* Internal code of OSM(MOD_LSFT) */
-            add_oneshot_mods(MOD_BIT(KC_LSHIFT));
+            add_oneshot_mods(MOD_BIT(KC_LSFT));
 
         } else {
             // send ">" (KC_DOT + shift → ">")
@@ -409,6 +410,55 @@ void process_combo_event(uint16_t combo_index, bool pressed) {
     
   }
 }
+
+
+void sentence_end(tap_dance_state_t *state, void *user_data) {
+    switch (state->count) {
+
+        // Double tapping TD_DOT produces
+        // ". <one-shot-shift>" i.e. dot, space and capitalize next letter.
+        // This helps to quickly end a sentence and begin another one
+        // without having to hit shift.
+        case 2:
+            /* Check that Shift is inactive */
+            if (!(get_mods() & MOD_MASK_SHIFT)) {
+                tap_code(KC_SPC);
+                /* Internal code of OSM(MOD_LSFT) */
+                add_oneshot_mods(MOD_BIT(KC_LSFT));
+
+            } else {
+                // send ">" (KC_DOT + shift → ">")
+                tap_code(KC_DOT);
+            }
+            break;
+
+        // Since `sentence_end` is called on each tap
+        // and not at the end of the tapping term,
+        // the third tap needs to cancel the effects
+        // of the double tap in order to get the expected
+        // three dots ellipsis.
+        case 3:
+            // remove the added space of the double tap case
+            tap_code(KC_BSPC);
+            // replace the space with a second dot
+            tap_code(KC_DOT);
+            // tap the third dot
+            tap_code(KC_DOT);
+            break;
+
+        // send KC_DOT on every normal tap of TD_DOT
+        default:
+            tap_code(KC_DOT);
+    }
+};
+
+void sentence_end_finished (tap_dance_state_t *state, void *user_data) {
+    last_keycode = KC_DOT;
+}
+
+tap_dance_action_t tap_dance_actions[] = {
+    [DOT_TD] = ACTION_TAP_DANCE_FN_ADVANCED(sentence_end, sentence_end_finished, NULL),
+};
 
 void keyboard_post_init_user(void) {
 

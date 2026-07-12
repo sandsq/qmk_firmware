@@ -3,7 +3,7 @@
 
 
 
-void sentence_end(qk_tap_dance_state_t *state, void *user_data) {
+void sentence_end(tap_dance_state_t *state, void *user_data) {
     switch (state->count) {
 
         // Double tapping TD_DOT produces
@@ -15,7 +15,7 @@ void sentence_end(qk_tap_dance_state_t *state, void *user_data) {
             if (!(get_mods() & MOD_MASK_SHIFT)) {
                 tap_code(KC_SPC);
                 /* Internal code of OSM(MOD_LSFT) */
-                add_oneshot_mods(MOD_BIT(KC_LSHIFT));
+                add_oneshot_mods(MOD_BIT(KC_LSFT));
 
             } else {
                 // send ">" (KC_DOT + shift → ">")
@@ -43,10 +43,10 @@ void sentence_end(qk_tap_dance_state_t *state, void *user_data) {
     }
 };
 
-void sentence_end_finished (qk_tap_dance_state_t *state, void *user_data) {
+void sentence_end_finished (tap_dance_state_t *state, void *user_data) {
     last_keycode = KC_DOT;
 }
 
-qk_tap_dance_action_t tap_dance_actions[] = {
+tap_dance_action_t tap_dance_actions[] = {
     [DOT_TD] = ACTION_TAP_DANCE_FN_ADVANCED(sentence_end, sentence_end_finished, NULL),
 };

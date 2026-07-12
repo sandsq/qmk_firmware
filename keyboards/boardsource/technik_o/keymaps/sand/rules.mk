@@ -24,12 +24,12 @@ BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
 RGBLIGHT_ENABLE = no        # Enable keyboard RGB underglow
 AUDIO_ENABLE = no           # Audio output
 RGB_MATRIX_ENABLE = yes
-RGB_MATRIX_DRIVER = WS2812
+RGB_MATRIX_DRIVER = ws2812
 LAYOUTS = ortho_4x12
 
 LTO_ENABLE = yes
 CAPS_WORD_ENABLE = yes
 
-ifeq ($(strip $(TAP_DANCE_ENABLE)), yes)
-	SRC += features/tapdance.c
-endif
+# ifeq ($(strip $(TAP_DANCE_ENABLE)), yes)
+# 	SRC += features/tapdance.c
+# endif
